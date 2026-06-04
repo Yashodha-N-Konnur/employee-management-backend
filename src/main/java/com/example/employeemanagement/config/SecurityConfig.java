@@ -48,52 +48,56 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
-            .csrf(AbstractHttpConfigurer::disable)
+                .csrf(AbstractHttpConfigurer::disable)
 
-            .sessionManagement(session ->
-                    session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-            .exceptionHandling(ex ->
-                    ex.authenticationEntryPoint(jwtEntryPoint))
+                .exceptionHandling(ex ->
+                        ex.authenticationEntryPoint(jwtEntryPoint))
 
-            .authorizeHttpRequests(auth -> auth
+                .authorizeHttpRequests(auth -> auth
 
-                .requestMatchers("/api/v1/auth/**").permitAll()
+                        .requestMatchers("/api/v1/auth/**").permitAll()
 
-                .requestMatchers("/swagger-ui/**",
-                                 "/swagger-ui.html",
-                                 "/api-docs/**",
-                                 "/v3/api-docs/**").permitAll()
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**",
+                                "/api-docs/**"
+                        ).permitAll()
 
-                .requestMatchers("/h2-console/**").permitAll()
+                        .requestMatchers("/h2-console/**").permitAll()
 
-                .requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers("/actuator/health").permitAll()
 
-                .requestMatchers(HttpMethod.GET, "/api/v1/**")
-                    .hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/**")
+                        .hasAnyRole("USER", "ADMIN")
 
-                .requestMatchers(HttpMethod.POST, "/api/v1/**")
-                    .hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/**")
+                        .hasRole("ADMIN")
 
-                .requestMatchers(HttpMethod.PUT, "/api/v1/**")
-                    .hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/**")
+                        .hasRole("ADMIN")
 
-                .requestMatchers(HttpMethod.DELETE, "/api/v1/**")
-                    .hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/**")
+                        .hasRole("ADMIN")
 
-                .requestMatchers(HttpMethod.PATCH, "/api/v1/**")
-                    .hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/**")
+                        .hasRole("ADMIN")
 
-                .anyRequest().authenticated()
-            )
+                        .anyRequest().authenticated()
+                )
 
-            .addFilterBefore(jwtAuthFilter,
-                    UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(
+                        jwtAuthFilter,
+                        UsernamePasswordAuthenticationFilter.class
+                )
 
-            .headers(headers ->
-                    headers.frameOptions(frame -> frame.sameOrigin()));
+                .headers(headers ->
+                        headers.frameOptions(frame -> frame.sameOrigin()));
 
         return http.build();
     }
@@ -128,12 +132,9 @@ public class SecurityConfig {
 
         CorsConfiguration configuration = new CorsConfiguration();
 
-    
-        configuration.setAllowedOrigins(List.of(
-        "http://localhost:5173",
-        "http://localhost:8080",
-        "https://employee-management-backend-wdm8.onrender.com"
-));
+        configuration.setAllowedOriginPatterns(List.of(
+                "*"
+        ));
 
         configuration.setAllowedMethods(List.of(
                 "GET",
