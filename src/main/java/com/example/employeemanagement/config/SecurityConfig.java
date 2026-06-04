@@ -44,63 +44,63 @@ public class SecurityConfig {
         this.userDetailsService = userDetailsService;
     }
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+   @Bean
+public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
-        http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+    http
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
-                .csrf(AbstractHttpConfigurer::disable)
+            .csrf(AbstractHttpConfigurer::disable)
 
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .sessionManagement(session ->
+                    session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                .exceptionHandling(ex ->
-                        ex.authenticationEntryPoint(jwtEntryPoint))
+            .exceptionHandling(ex ->
+                    ex.authenticationEntryPoint(jwtEntryPoint))
 
-                .authorizeHttpRequests(auth -> auth
+            .authorizeHttpRequests(auth -> auth
 
-                        .requestMatchers("/api/v1/auth/**").permitAll()
+                    .requestMatchers("/api/v1/auth/**").permitAll()
 
-                        .requestMatchers(
-                                "/swagger-ui/**",
-                                "/swagger-ui.html",
-                                "/v3/api-docs/**",
-                                "/api-docs/**"
-                        ).permitAll()
+                    .requestMatchers(
+                            "/swagger-ui/**",
+                            "/swagger-ui.html",
+                            "/v3/api-docs/**",
+                            "/api-docs/**"
+                    ).permitAll()
 
-                        .requestMatchers("/h2-console/**").permitAll()
+                    .requestMatchers("/h2-console/**").permitAll()
 
-                        .requestMatchers("/actuator/health").permitAll()
+                    .requestMatchers("/actuator/health").permitAll()
 
-                        .requestMatchers(HttpMethod.GET, "/api/v1/**")
-                        .hasAnyRole("USER", "ADMIN")
+                    .requestMatchers(HttpMethod.GET, "/api/v1/**")
+                    .hasAnyRole("USER", "ADMIN")
 
-                        .requestMatchers(HttpMethod.POST, "/api/v1/**")
-                        .hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.POST, "/api/v1/**")
+                    .hasRole("ADMIN")
 
-                        .requestMatchers(HttpMethod.PUT, "/api/v1/**")
-                        .hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.PUT, "/api/v1/**")
+                    .hasRole("ADMIN")
 
-                        .requestMatchers(HttpMethod.DELETE, "/api/v1/**")
-                        .hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.DELETE, "/api/v1/**")
+                    .hasRole("ADMIN")
 
-                        .requestMatchers(HttpMethod.PATCH, "/api/v1/**")
-                        .hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.PATCH, "/api/v1/**")
+                    .hasRole("ADMIN")
 
-                        .anyRequest().authenticated()
-                )
+                    .anyRequest().authenticated()
+            )
 
-                .addFilterBefore(
-                        jwtAuthFilter,
-                        UsernamePasswordAuthenticationFilter.class
-                )
+            .addFilterBefore(
+                    jwtAuthFilter,
+                    UsernamePasswordAuthenticationFilter.class
+            )
 
-                .headers(headers ->
-                        headers.frameOptions(frame -> frame.sameOrigin()));
+            .headers(headers ->
+                    headers.frameOptions(frame -> frame.sameOrigin()));
 
-        return http.build();
-    }
+    return http.build();
+}
 
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
@@ -128,32 +128,33 @@ public class SecurityConfig {
     }
 
     @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
+public CorsConfigurationSource corsConfigurationSource() {
 
-        CorsConfiguration configuration = new CorsConfiguration();
+    CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedOriginPatterns(List.of(
-                "*"
-        ));
+    configuration.setAllowedOriginPatterns(List.of(
+            "*"
+    ));
 
-        configuration.setAllowedMethods(List.of(
-                "GET",
-                "POST",
-                "PUT",
-                "DELETE",
-                "PATCH",
-                "OPTIONS"
-        ));
+    configuration.setAllowedMethods(List.of(
+            "GET",
+            "POST",
+            "PUT",
+            "DELETE",
+            "PATCH",
+            "OPTIONS"
+    ));
 
-        configuration.setAllowedHeaders(List.of("*"));
+    configuration.setAllowedHeaders(List.of("*"));
 
-        configuration.setAllowCredentials(true);
+    configuration.setAllowCredentials(true);
 
-        UrlBasedCorsConfigurationSource source =
-                new UrlBasedCorsConfigurationSource();
+    UrlBasedCorsConfigurationSource source =
+            new UrlBasedCorsConfigurationSource();
 
-        source.registerCorsConfiguration("/**", configuration);
+    source.registerCorsConfiguration("/**", configuration);
 
-        return source;
-    }
+    return source;
 }
+}
+
