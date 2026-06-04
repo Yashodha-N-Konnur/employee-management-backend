@@ -1,0 +1,78 @@
+version: "3.9"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Docker Compose – Employee Management System + MySQL
+# Usage:
+#   docker compose up -d          # start all services
+#   docker compose logs -f app    # stream app logs
+#   docker compose down -v        # stop + remove volumes
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+
+  # ── MySQL 8 ───────────────────────────────────────────────────────────────
+  mysql:
+    image: mysql:8.2
+    container_name: ems-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE:      ${MYSQL_DATABASE:-employee_db}
+      MYSQL_USER:          ${MYSQL_USER:-ems_user}
+      MYSQL_PASSWORD:      ${MYSQL_PASSWORD:-ems_pass}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./src/main/resources/data.sql:/docker-entrypoint-initdb.d/data.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-root}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - ems-network
+
+  # ── Spring Boot Application ────────────────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ems-app
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL:      jdbc:mysql://mysql:3306/${MYSQL_DATABASE:-employee_db}?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER:-ems_user}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD:-ems_pass}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      APP_JWT_SECRET:             ${JWT_SECRET:-dGhpcyBpcyBhIHNlY3JldCBrZXkgZm9yIGVtcGxveWVlIG1hbmFnZW1lbnQgc3lzdGVtIGp3dCBhdXRoZW50aWNhdGlvbg==}
+      APP_JWT_EXPIRATION:         86400000
+      APP_JWT_ISSUER:             employee-management-system
+      APP_SECURITY_ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      APP_SECURITY_ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
+      APP_SECURITY_USER_USERNAME:  ${USER_USERNAME:-user}
+      APP_SECURITY_USER_PASSWORD:  ${USER_PASSWORD:-user123}
+      LOGGING_LEVEL_COM_EXAMPLE_EMPLOYEEMANAGEMENT: INFO
+    ports:
+      - "8080:8080"
+    volumes:
+      - app_logs:/app/logs
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - ems-network
+
+volumes:
+  mysql_data:
+  app_logs:
+
+networks:
+  ems-network:
+    driver: bridge
